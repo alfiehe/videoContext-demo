@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拉远（缩小）</title>
+  <link rel="stylesheet" href="pure-min.css">
+  <style>
+    body {
+      padding: 30px;
+    }
+  </style>
+  <script type="text/javascript" src="videocontext.js"></script>
+  <script type="text/javascript" src="utils.js"></script>
+</head>
+
+<body>
+  <div class="pure-g">
+    <div class="pure-u-1-2">
+      <canvas id="canvas" width="640" height="360" style="width: 640px; height: 360px"></canvas>
+      <canvas id="visualisation-canvas" width="640" , height="20"></canvas>
+    </div>
+    <div class="pure-u-1-2">
+      <canvas id="graph-canvas" width="480" , height="200"></canvas> <br />
+      <button class="pure-button" id="playButton">拉远（缩小）</button>
+      <button class="pure-button" id="pauseButton">暂停</button>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+
+    window.onload = function () {
+
+      // Setup VideoContext
+      let canvas = document.getElementById('canvas');
+      let videoContext = new VideoContext(canvas);
+      console.log('VideoContext.DEFINITIONS.CROP===', VideoContext.DEFINITIONS.CROP);
+
+      // Image Node
+      let imageNode = videoContext.image("./img/ycy.jpg");
+      // imageNode.connect(videoContext.destination)
+      imageNode.start(0);
+      imageNode.stop(3);
+
+      // Effect Noce
+      let effectNode = videoContext.transition(VideoContext.DEFINITIONS.CROP);
+      // let effectNode = videoContext.transition(VideoContext.DEFINITIONS.AAF_VIDEO_CROP);
+      imageNode.connect(effectNode);
+      effectNode.connect(videoContext.destination);
+
+      // 接口返回数据
+      const data = {
+        x_0: 0.12820770263671877,
+        x_1: 0.885247802734375,
+        y_0: 0.07160373263888889,
+        y_1: 0.8298285590277777
+      };
+
+      const cropWidth = (data.x_1 - data.x_0) * 640 / 640;
+      const cropHeight = (data.y_1 - data.y_0) * 360 / 360;
+
+      let btn = document.getElementById("playButton");
+      btn.onclick = function () {
+        effectNode.transition(0, 3, data.x_0, 0, "x");
+        effectNode.transition(0, 3, data.y_0, 0, "y");
+        effectNode.transition(0, 3, cropWidth, 1, "width");
+        effectNode.transition(0, 3, cropHeight, 1, "height");
+        videoContext.play();
+      };
+
+      setTimeout(() => videoContext.pause(), 3000)
+
+      // Pause
+      document.getElementById("pauseButton").onclick = function () {
+        videoContext.pause();
+      };
+
+      //Set-up the visualisation using the convienience function in ../js/utils.js
+      InitVisualisations(videoContext, "graph-canvas", "visualisation-canvas");
+
+    }
+  </script>
+</body>
+
+</html>
